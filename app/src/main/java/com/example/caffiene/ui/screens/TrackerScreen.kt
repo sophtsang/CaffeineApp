@@ -87,6 +87,7 @@ fun TrackerScreen(
     val logs by viewModel.logs.collectAsStateWithLifecycle()
     val totalCaffeine by viewModel.totalCaffeine.collectAsStateWithLifecycle()
     val lastLogTime by viewModel.lastLogTime.collectAsStateWithLifecycle()
+
 //    var editingLog by remember { mutableStateOf<CaffeineLog?>(null) }
 
     Column(
@@ -236,6 +237,7 @@ private fun LogCard(
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Preview
 @Composable
 private fun LogCardPreview() {
@@ -245,5 +247,15 @@ private fun LogCardPreview() {
             caffeineAmt = "250.0"
         ),
         {}
+    )
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+@Preview
+@Composable
+private fun TrackerScreenPreview() {
+    TrackerScreen(
+        onNavToTrends = {},
+        onNavToCalc = {}
     )
 }

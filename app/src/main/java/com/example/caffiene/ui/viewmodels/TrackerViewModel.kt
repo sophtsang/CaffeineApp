@@ -1,5 +1,7 @@
 package com.example.caffiene.ui.viewmodels
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -9,10 +11,12 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 import javax.inject.Inject
 import java.time.LocalDateTime
 
-data class CaffeineLog(
+@RequiresApi(Build.VERSION_CODES.O)
+data class CaffeineLog (
     val id: Long = System.currentTimeMillis(),
     val beverageName: String,
     val caffeineAmt: String,
@@ -35,6 +39,8 @@ class TrackerViewModel @Inject constructor() : ViewModel() {
     private val _lastLogTime = MutableStateFlow<LocalDateTime?>(null)
     val lastLogTime: StateFlow<LocalDateTime?> = _lastLogTime.asStateFlow()
 
+    private val _dailyTotals = MutableStateFlow<Map<LocalDate, Float>>(emptyMap())
+    val dailyTotals: StateFlow<Map<LocalDate, Float>> = _dailyTotals.asStateFlow()
 
     fun onBeverageNameChange(name : String) {
         _beverageName.value = name
@@ -44,6 +50,7 @@ class TrackerViewModel @Inject constructor() : ViewModel() {
         _caffeineAmt.value = if (amt.toFloatOrNull() != null) amt else ""
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     fun logCaffeine() {
         val name = _beverageName.value
         val amt = _caffeineAmt.value
@@ -59,18 +66,12 @@ class TrackerViewModel @Inject constructor() : ViewModel() {
             _totalCaffeine.value += (amt.toFloatOrNull() ?: 0f)
             _beverageName.value = ""
             _caffeineAmt.value = ""
+
+            recalculateDailyTotals()
         }
     }
 
-    fun updateLog(id: Long, newName: String, newAmt: String) {
-        _logs.value = _logs.value.map { log ->
-            if (log.id == id) log.copy(
-                beverageName = newName,
-                caffeineAmt = newAmt
-            ) else log
-        }
-    }
-
+    @RequiresApi(Build.VERSION_CODES.O)
     fun deleteLog(id: Long) {
         val logToDelete = _logs.value.find { it.id == id }
         logToDelete?.caffeineAmt?.toFloatOrNull()?.let { amt ->
@@ -78,6 +79,17 @@ class TrackerViewModel @Inject constructor() : ViewModel() {
         }
         _logs.value = _logs.value.filterNot { it.id == id }
         _lastLogTime.value = _logs.value.maxByOrNull { it.timeStamp }?.timeStamp
+
+        recalculateDailyTotals()
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun recalculateDailyTotals() {
+        _dailyTotals.value = _logs.value
+            .groupBy { it.timeStamp.toLocalDate() }
+            .mapValues { entry ->
+                entry.value.fold(0f) { acc, log -> acc + (log.caffeineAmt.toFloatOrNull() ?: 0f) }
+            }
     }
 
 
