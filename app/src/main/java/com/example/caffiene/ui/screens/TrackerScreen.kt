@@ -1,5 +1,7 @@
 package com.example.caffiene.ui.screens
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -20,6 +22,9 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.rounded.Coffee
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -29,16 +34,20 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.caffiene.ui.components.Header
 import com.example.caffiene.ui.viewmodels.CaffeineLog
 import com.example.caffiene.ui.viewmodels.TrackerViewModel
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 /**
 Main Home Screen: Tracker Screen Format:
@@ -64,37 +73,63 @@ LOG LIST...
 #######################
 */
 
+@OptIn(ExperimentalMaterial3Api::class)
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun TrackerScreen(
     viewModel: TrackerViewModel = hiltViewModel(),
     onNavToTrends: () -> Unit,
     onNavToCalc: () -> Unit
 ) {
+    var addBeverage by remember { mutableStateOf(false) }
     val beverageName by viewModel.beverageName.collectAsStateWithLifecycle()
     val caffeineAmt by viewModel.caffeineAmt.collectAsStateWithLifecycle()
     val logs by viewModel.logs.collectAsStateWithLifecycle()
     val totalCaffeine by viewModel.totalCaffeine.collectAsStateWithLifecycle()
+    val lastLogTime by viewModel.lastLogTime.collectAsStateWithLifecycle()
 //    var editingLog by remember { mutableStateOf<CaffeineLog?>(null) }
 
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Header for logging new beverages
-        Header(
-            beverageName = beverageName,
-            caffeineAmt = caffeineAmt,
-            onBeverageNameChange = viewModel::onBeverageNameChange,
-            onCaffeineAmtChange = viewModel::onCaffeineAmtChange,
-            onClickLog = viewModel::logCaffeine
+        val today = LocalDate.now()
+        val formatter = DateTimeFormatter.ofPattern("EEEE, MMM d")
+
+        Text(
+            text = today.format(formatter),
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
         )
+
+        if (addBeverage) {
+            Dialog(
+                onDismissRequest = { addBeverage = false }
+            ) {
+                Header(
+                    beverageName = beverageName,
+                    caffeineAmt = caffeineAmt,
+                    onBeverageNameChange = viewModel::onBeverageNameChange,
+                    onCaffeineAmtChange = viewModel::onCaffeineAmtChange,
+                    onClickLog = {
+                        viewModel.logCaffeine()
+                        addBeverage = false
+                    }
+                )
+            }
+        }
         // Display logged beverages of the day:
         Spacer(Modifier.height(20.dp))
-        LogsRow(logs) { id -> viewModel.deleteLog(id) }
+        LogsRow(
+            logs = logs,
+            onDelete = { id -> viewModel.deleteLog(id) },
+            onAddBeverage = { addBeverage = true }
+        )
         Spacer(Modifier.height(20.dp))
 
         MiniTrendsScreen(
             totalCaffeine = totalCaffeine,
+            lastLogTime = lastLogTime,
             onNavigate = onNavToTrends
         )
         Spacer(Modifier.height(20.dp))
@@ -105,7 +140,8 @@ fun TrackerScreen(
 @Composable
 fun LogsRow(
     logs: List<CaffeineLog>,
-    onDelete: (Long) -> Unit
+    onDelete: (Long) -> Unit,
+    onAddBeverage: () -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -119,12 +155,26 @@ fun LogsRow(
                 .fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(
-                text = "Logged Beverages",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFF3A332C)
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp)
+            ) {
+                Text(
+                    text = "Logged Beverages",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF3A332C)
+                )
+
+                IconButton(onClick = onAddBeverage) {
+                    Icon(
+                        imageVector = Icons.Rounded.Coffee,
+                        contentDescription = "Coffee",
+                        tint = Color(0xFF6F4E37)
+                    )
+                }
+            }
             Spacer(Modifier.height(20.dp))
             if (logs.isEmpty()) {
                 Box(

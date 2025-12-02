@@ -10,11 +10,13 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import java.time.LocalDateTime
 
 data class CaffeineLog(
     val id: Long = System.currentTimeMillis(),
     val beverageName: String,
-    val caffeineAmt: String
+    val caffeineAmt: String,
+    val timeStamp: LocalDateTime = LocalDateTime.now()
 )
 @HiltViewModel
 class TrackerViewModel @Inject constructor() : ViewModel() {
@@ -30,6 +32,10 @@ class TrackerViewModel @Inject constructor() : ViewModel() {
     private val _totalCaffeine = MutableStateFlow(0f)
     val totalCaffeine = _totalCaffeine.asStateFlow()
 
+    private val _lastLogTime = MutableStateFlow<LocalDateTime?>(null)
+    val lastLogTime: StateFlow<LocalDateTime?> = _lastLogTime.asStateFlow()
+
+
     fun onBeverageNameChange(name : String) {
         _beverageName.value = name
     }
@@ -43,11 +49,13 @@ class TrackerViewModel @Inject constructor() : ViewModel() {
         val amt = _caffeineAmt.value
 
         if (name.isNotBlank() && amt.isNotBlank()) {
-            _logs.value = _logs.value + CaffeineLog(
+            val log = CaffeineLog(
                 beverageName = name,
                 caffeineAmt = amt
             )
 
+            _logs.value = _logs.value + log
+            _lastLogTime.value = log.timeStamp
             _totalCaffeine.value += (amt.toFloatOrNull() ?: 0f)
             _beverageName.value = ""
             _caffeineAmt.value = ""
@@ -69,6 +77,7 @@ class TrackerViewModel @Inject constructor() : ViewModel() {
             _totalCaffeine.value -= amt
         }
         _logs.value = _logs.value.filterNot { it.id == id }
+        _lastLogTime.value = _logs.value.maxByOrNull { it.timeStamp }?.timeStamp
     }
 
 
