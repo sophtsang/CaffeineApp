@@ -84,11 +84,10 @@ fun TrackerScreen(
     var addBeverage by remember { mutableStateOf(false) }
     val beverageName by viewModel.beverageName.collectAsStateWithLifecycle()
     val caffeineAmt by viewModel.caffeineAmt.collectAsStateWithLifecycle()
+    val timeStamp by viewModel.timeStamp.collectAsStateWithLifecycle()
     val logs by viewModel.logs.collectAsStateWithLifecycle()
     val totalCaffeine by viewModel.totalCaffeine.collectAsStateWithLifecycle()
     val lastLogTime by viewModel.lastLogTime.collectAsStateWithLifecycle()
-
-//    var editingLog by remember { mutableStateOf<CaffeineLog?>(null) }
 
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -96,6 +95,7 @@ fun TrackerScreen(
     ) {
         val today = LocalDate.now()
         val formatter = DateTimeFormatter.ofPattern("EEEE, MMM d")
+        val formatterTS = DateTimeFormatter.ofPattern("MM/dd/yyyy HH:mm")
 
         Text(
             text = today.format(formatter),
@@ -110,8 +110,10 @@ fun TrackerScreen(
                 Header(
                     beverageName = beverageName,
                     caffeineAmt = caffeineAmt,
+                    timeStamp = timeStamp.format(formatterTS),
                     onBeverageNameChange = viewModel::onBeverageNameChange,
                     onCaffeineAmtChange = viewModel::onCaffeineAmtChange,
+                    onTimeStampChange = viewModel::onTimeStampChange,
                     onClickLog = {
                         viewModel.logCaffeine()
                         addBeverage = false

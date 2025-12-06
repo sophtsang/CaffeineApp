@@ -14,6 +14,9 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate
 import javax.inject.Inject
 import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
+import java.util.Locale
 
 @RequiresApi(Build.VERSION_CODES.O)
 data class CaffeineLog (
@@ -29,6 +32,11 @@ class TrackerViewModel @Inject constructor() : ViewModel() {
 
     private val _caffeineAmt = MutableStateFlow("")
     val caffeineAmt = _caffeineAmt.asStateFlow()
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private val _timeStamp = MutableStateFlow("")
+    @RequiresApi(Build.VERSION_CODES.O)
+    val timeStamp = _timeStamp.asStateFlow()
 
     private val _logs = MutableStateFlow<List<CaffeineLog>>(emptyList())
     val logs : StateFlow<List<CaffeineLog>> = _logs.asStateFlow()
@@ -51,9 +59,22 @@ class TrackerViewModel @Inject constructor() : ViewModel() {
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
+    fun onTimeStampChange(time : String) {
+        val formatter = DateTimeFormatter.ofPattern("MM/dd/yyyy HH:mm", Locale.US)
+
+        try {
+            LocalDateTime.parse(time, formatter)
+            _timeStamp.value = time
+        } catch (e: DateTimeParseException) {
+            _timeStamp.value = LocalDateTime.now().toString()
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
     fun logCaffeine() {
         val name = _beverageName.value
         val amt = _caffeineAmt.value
+        val time = _timeStamp.value
 
         if (name.isNotBlank() && amt.isNotBlank()) {
             val log = CaffeineLog(
