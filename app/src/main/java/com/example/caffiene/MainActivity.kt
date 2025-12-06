@@ -30,10 +30,13 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
+import com.example.caffiene.ui.screens.BeverageScreen
 import com.example.caffiene.ui.screens.CalculatorScreen
+import com.example.caffiene.ui.screens.LogInScreen
 import com.example.caffiene.ui.screens.TrackerScreen
 import com.example.caffiene.ui.screens.TrendsScreen
 import com.example.caffiene.ui.theme.CaffieneTheme
+import com.example.caffiene.ui.viewmodels.AuthViewModel
 import com.example.caffiene.ui.viewmodels.TrackerViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -52,7 +55,21 @@ class MainActivity : ComponentActivity() {
                             navController = navController,
                             startDestination = "main"
                         ) {
-                            navigation(startDestination = "trackerscreen", route = "main") {
+                            navigation(startDestination = "loginscreen", route = "main") {
+                                composable("loginscreen") { backStackEntry ->
+                                    val parentEntry = remember(backStackEntry) {
+                                        navController.getBackStackEntry("main")
+                                    }
+                                    val viewModel: AuthViewModel = hiltViewModel(parentEntry)
+                                    val viewTrackerModel: TrackerViewModel = hiltViewModel(parentEntry)
+
+                                    LogInScreen(
+                                        viewModel = viewModel,
+                                        trackerModel = viewTrackerModel,
+                                        onNavigate = { navController.navigate("trackerscreen") }
+                                    )
+                                }
+
                                 composable("trackerscreen") { backStackEntry ->
                                     val parentEntry = remember(backStackEntry) {
                                         navController.getBackStackEntry("main")
@@ -81,7 +98,7 @@ class MainActivity : ComponentActivity() {
                                     val parentEntry = remember(backStackEntry) {
                                         navController.getBackStackEntry("main")
                                     }
-                                    CalculatorScreen()
+                                    BeverageScreen()
                                 }
                             }
                         }

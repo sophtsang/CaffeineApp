@@ -41,7 +41,7 @@ fun MiniCalcCard(
             horizontalAlignment = Alignment.CenterHorizontally // center contents
         ) {
             Text(
-                text = "Caffeine Calculator",
+                text = "Caffeinated Beverages",
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFF3A332C)

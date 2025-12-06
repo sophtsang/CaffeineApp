@@ -1,17 +1,19 @@
 package com.example.caffiene.di
 
 import com.example.caffiene.data.remote.UserApiService
+import dagger.Module
 import dagger.Provides
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
 import javax.inject.Singleton
-//import okhttp3.OkHttpClient
 
-//val okhttp3: Any
-
+@Module
+@InstallIn(SingletonComponent::class)
 object NetworkModule {
     @Provides
     @Singleton

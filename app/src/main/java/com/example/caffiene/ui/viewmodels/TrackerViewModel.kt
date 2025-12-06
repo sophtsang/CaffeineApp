@@ -44,6 +44,9 @@ class TrackerViewModel @Inject constructor() : ViewModel() {
     private val _totalCaffeine = MutableStateFlow(0f)
     val totalCaffeine = _totalCaffeine.asStateFlow()
 
+    private val _caffeineLimit = MutableStateFlow(0f)
+    val caffeineLimit = _caffeineLimit.asStateFlow()
+
     private val _lastLogTime = MutableStateFlow<LocalDateTime?>(null)
     val lastLogTime: StateFlow<LocalDateTime?> = _lastLogTime.asStateFlow()
 
@@ -56,6 +59,10 @@ class TrackerViewModel @Inject constructor() : ViewModel() {
 
     fun onCaffeineAmtChange(amt : String) {
         _caffeineAmt.value = if (amt.toFloatOrNull() != null) amt else ""
+    }
+
+    fun onCaffeineLimitChange(amt : Float) {
+        _caffeineLimit.value = amt
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -112,7 +119,4 @@ class TrackerViewModel @Inject constructor() : ViewModel() {
                 entry.value.fold(0f) { acc, log -> acc + (log.caffeineAmt.toFloatOrNull() ?: 0f) }
             }
     }
-
-
-
 }

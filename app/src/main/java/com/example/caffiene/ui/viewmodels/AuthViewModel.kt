@@ -7,7 +7,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.room.util.copy
 import com.example.caffiene.data.model.User
 import com.example.caffiene.data.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -46,7 +45,6 @@ class AuthViewModel @Inject constructor(
         password: String,
         dailyCaffeineLimit: Int,
         weightLbs: Double,
-        onSuccess: (Int) -> Unit
     ) {
 
         viewModelScope.launch {

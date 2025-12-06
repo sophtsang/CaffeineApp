@@ -88,6 +88,7 @@ fun TrackerScreen(
     val logs by viewModel.logs.collectAsStateWithLifecycle()
     val totalCaffeine by viewModel.totalCaffeine.collectAsStateWithLifecycle()
     val lastLogTime by viewModel.lastLogTime.collectAsStateWithLifecycle()
+    val caffeineLimit by viewModel.caffeineLimit.collectAsStateWithLifecycle()
 
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -132,6 +133,7 @@ fun TrackerScreen(
 
         MiniTrendsScreen(
             totalCaffeine = totalCaffeine,
+            caffeineLimit = caffeineLimit,
             lastLogTime = lastLogTime,
             onNavigate = onNavToTrends
         )

@@ -62,6 +62,7 @@ fun TrendsScreen(
     val weeklyLogs by viewModel.dailyTotals.collectAsStateWithLifecycle()
     val totalCaffeine by viewModel.totalCaffeine.collectAsStateWithLifecycle()
     val lastLogTime by viewModel.lastLogTime.collectAsStateWithLifecycle()
+    val caffeineLimit by viewModel.caffeineLimit.collectAsStateWithLifecycle()
 
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -79,6 +80,7 @@ fun TrendsScreen(
             content = {
                 DailyIntakeCard(
                     totalCaffeine = totalCaffeine,
+                    caffeineLimit = caffeineLimit,
                     lastLogTime = lastLogTime
                 )
             }
