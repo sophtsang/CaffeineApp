@@ -4,6 +4,17 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
+data class BeverageResponse(
+    val beverages: List<Beverage>
+)
+
+@Serializable
+data class DeletedBeverageResponse(
+    @SerialName("beverage_deleted") val beverageDeleted: Beverage
+)
+
+
+@Serializable
 data class User(
     val username: String,
     val email: String,

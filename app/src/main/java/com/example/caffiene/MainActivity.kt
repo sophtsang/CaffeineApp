@@ -98,7 +98,12 @@ class MainActivity : ComponentActivity() {
                                     val parentEntry = remember(backStackEntry) {
                                         navController.getBackStackEntry("main")
                                     }
-                                    BeverageScreen()
+                                    val viewModel: TrackerViewModel = hiltViewModel(parentEntry)
+
+                                    BeverageScreen(
+                                        viewModel = viewModel,
+                                        onNavigate = { navController.navigate("calculatorscreen") }
+                                    )
                                 }
                             }
                         }

@@ -74,42 +74,5 @@ class AuthViewModel @Inject constructor(
                 }
         }
     }
-
-    /**
-     * Login existing user
-     * NOTE: This requires adding authentication endpoint to Flask API
-     */
-//    fun login(
-//        username: String,
-//        password: String,
-//        onSuccess: (User) -> Unit
-//    ) {
-//        viewModelScope.launch {
-//            uiState = uiState.copy(isLoading = true, errorMessage = null)
-//
-//            repository.authenticateUser(username, password)
-//                .onSuccess { user ->
-//                    uiState = uiState.copy(
-//                        isLoading = false,
-//                        currentUser = user,
-//                        isAuthenticated = true
-//                    )
-//                    onSuccess(user)
-//                }
-//                .onFailure { error ->
-//                    uiState = uiState.copy(
-//                        isLoading = false,
-//                        errorMessage = when {
-//                            error is NotImplementedError ->
-//                                "Login endpoint not implemented yet. Please register instead."
-//                            error.message?.contains("401") == true ->
-//                                "Invalid username or password"
-//                            else ->
-//                                error.message ?: "Login failed"
-//                        }
-//                    )
-//                }
-//        }
-//    }
 }
 

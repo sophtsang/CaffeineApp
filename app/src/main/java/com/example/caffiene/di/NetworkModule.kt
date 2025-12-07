@@ -34,8 +34,8 @@ object NetworkModule {
         okHttpClient: OkHttpClient
     ): Retrofit {
         return Retrofit.Builder()
-            .addConverterFactory(json.asConverterFactory("applicaton/json".toMediaType()))
-            .baseUrl("http://localhost:5000")
+            .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
+            .baseUrl("http://35.194.72.170/")
             .client(okHttpClient)
             .build()
     }

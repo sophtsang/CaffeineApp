@@ -2,6 +2,7 @@ package com.example.caffiene.ui.screens
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -9,8 +10,17 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.rounded.Coffee
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -23,25 +33,83 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.caffiene.R
+import com.example.caffiene.data.model.Beverage
+import com.example.caffiene.ui.components.Header
+import com.example.caffiene.ui.viewmodels.TrackerViewModel
+import kotlinx.coroutines.delay
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
-data class Beverage(
+data class Bev(
+    val id: Int,
     val name: String,
     val caffeine: String,
     val icon: ImageVector,
     val color: Color
 )
 
+fun nameToIcon(
+    name: String
+) : ImageVector {
+    val icon = when (name) {
+        "Espresso" -> Icons.Default.LocalCafe
+        "Latte" -> Icons.Default.EmojiFoodBeverage
+        "Cappuccino" -> Icons.Default.LocalBar
+        "Celsius" -> Icons.Default.BatteryChargingFull
+        "Matcha" -> Icons.Default.Spa
+        "Cold Brew" -> Icons.Default.AcUnit
+        else -> Icons.Default.LocalCafe
+    }
+    return icon
+}
+
+fun categoryToColor(
+    category: String
+) : Color {
+    val color = when (category) {
+        "Coffee" -> Color(0xFF6F4E37)
+        "Tea" -> Color(0xFF7CB342)
+        "Energy Drink" -> Color(0xFFFF6B6B)
+        "Water" -> Color(0xFF9FDBE0)
+        else -> Color(0xFF5D4E37)
+    }
+    return color
+}
+
 @Composable
-fun BeverageScreen() {
-    val beverages = listOf(
-        Beverage("Espresso", "63mg", Icons.Default.LocalCafe, Color(0xFF6F4E37)),
-        Beverage("Latte", "75mg", Icons.Default.EmojiFoodBeverage, Color(0xFFA0826D)),
-        Beverage("Cappuccino", "80mg", Icons.Default.LocalBar, Color(0xFF9C7A5E)),
-        Beverage("Celsius", "80mg", Icons.Default.BatteryChargingFull, Color(0xFFFF6B6B)),
-        Beverage("Matcha", "70mg", Icons.Default.Spa, Color(0xFF7CB342)),
-        Beverage("Cold Brew", "200mg", Icons.Default.AcUnit, Color(0xFF5D4E37)),
-    )
+fun BeverageScreen(
+    onNavigate: () -> Unit,
+    viewModel: TrackerViewModel = hiltViewModel()
+) {
+    var addBeverage by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        viewModel.listBeverages()
+    }
+
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(5000)
+            viewModel.listBeverages()
+        }
+    }
+
+    val beverageList by viewModel.beverageList.collectAsState()
+
+    val beverages = remember(beverageList) {
+        beverageList.values.map { bev ->
+            Bev(
+                id = bev.id,
+                name = bev.name,
+                caffeine = bev.caffeineContentMg.toString(),
+                icon = nameToIcon(bev.name),
+                color = categoryToColor(bev.category)
+            )
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -58,7 +126,8 @@ fun BeverageScreen() {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp)
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Box(
                 modifier = Modifier
@@ -75,25 +144,58 @@ fun BeverageScreen() {
                 )
             }
 
+            if (addBeverage) {
+                Dialog(
+                    onDismissRequest = { addBeverage = false }
+                ) {
+                    DrinkButton(
+                        onDismiss = { addBeverage = false },
+                        viewModel = viewModel
+                    )
+                }
+            }
+
+            IconButton(
+                onClick = { addBeverage = true },
+            ) {
+                Icon(
+                    imageVector = Icons.Rounded.Coffee,
+                    contentDescription = "Coffee",
+                    tint = Color(0xFF6F4E37)
+                )
+            }
+
             LazyVerticalGrid(
                 columns = GridCells.Fixed(2),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(beverages) { beverage ->
-                    BeverageCard(beverage)
+                    BeverageCard(
+                        beverage = beverage,
+                        onNavigate = onNavigate
+                    )
                 }
             }
+
+
         }
     }
 }
 
 @Composable
-fun BeverageCard(beverage: Beverage) {
+fun BeverageCard(
+    beverage: Bev,
+    viewModel: TrackerViewModel = hiltViewModel(),
+    onNavigate: () -> Unit
+) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(160.dp),
+            .height(160.dp)
+            .clickable {
+                viewModel.deleteBeverage(beverage.id)
+            },
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
             containerColor = Color.White
@@ -122,6 +224,7 @@ fun BeverageCard(beverage: Beverage) {
                 )
             }
 
+
             Spacer(modifier = Modifier.height(12.dp))
 
             Text(
@@ -143,8 +246,97 @@ fun BeverageCard(beverage: Beverage) {
     }
 }
 
+@Composable
+fun DrinkButton(
+    onDismiss: () -> Unit,
+    viewModel: TrackerViewModel = hiltViewModel()
+) {
+    var beverageName by remember { mutableStateOf("") }
+    var caffeineContent by remember { mutableStateOf("") }
+    var category by remember { mutableStateOf("") }
+
+    Card(
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFFD4C5BA)
+        ),
+        modifier = Modifier
+            .padding(16.dp),
+        shape = RoundedCornerShape(16.dp)
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "New Drink",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF6F4E37)
+            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                OutlinedTextField(
+                    label = { Text("Drink Name") },
+                    singleLine = true,
+                    value = beverageName,
+                    onValueChange = { it -> beverageName = it },
+                    placeholder = { Text("Red Bull") },
+                    modifier = Modifier.weight(1f)
+                )
+
+                OutlinedTextField(
+                    label = { Text("Caffeine (mg)") },
+                    singleLine = true,
+                    value = caffeineContent,
+                    onValueChange = { it -> caffeineContent = it },
+                    placeholder = { Text("80") },
+                    modifier = Modifier.weight(1f)
+                )
+            }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                OutlinedTextField(
+                    label = { Text("Beverage Category") },
+                    singleLine = true,
+                    value = category,
+                    onValueChange = { it -> category = it },
+                    placeholder = { Text("Energy Drink") },
+                    modifier = Modifier.weight(1f)
+                )
+            }
+            IconButton(
+                onClick = {
+                    viewModel.createBeverage(
+                        name = beverageName,
+                        caffeineContent = caffeineContent.toInt(),
+                        category = category
+                    )
+                    onDismiss()
+                },
+                enabled = (beverageName.isNotBlank() && caffeineContent.isNotBlank()
+                        && caffeineContent.toIntOrNull() != null && category.isNotBlank())
+            ) {
+                Icon(
+                    imageVector = Icons.Rounded.Coffee,
+                    contentDescription = "Coffee",
+                    tint = Color(0xFF6F4E37)
+                )
+            }
+        }
+    }
+}
+
 @Preview(showBackground = true)
 @Composable
 fun BeveragePreview() {
-    BeverageScreen()
+    BeverageScreen(onNavigate = {})
 }
